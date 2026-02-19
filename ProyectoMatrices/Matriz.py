@@ -1,4 +1,5 @@
 import random
+from validaciones import validarMatrizCuadrada
 
 class Matriz:
     def __init__(self, filas, columnas):
@@ -100,7 +101,83 @@ class Matriz:
     def divisionEscalar(self,k):
         return self.operacionesEscalares(k, lambda a,k:a/k )
 
+    def determinante(self):
+        validarMatrizCuadrada(self.filas,self.columnas)
+        # Caso base: matriz 1x1
+        if self.filas == 1:
+            return self.matriz[0][0]
+        # Caso base: matriz 2x2
+        if self.filas == 2:
+            return (self.matriz[0][0] * self.matriz[1][1]
+                    - self.matriz[0][1] * self.matriz[1][0])
+         # Caso recursivo
+        det = 0
+        for col in range(self.columnas):
+            submatriz = [
+                [self.matriz[i][j] for j in range(self.columnas) if j != col]
+                for i in range(1, self.filas)
+            ]
 
-    
+            sub = Matriz(self.filas - 1, self.columnas - 1)
+            sub.matriz = submatriz
 
+            det += ((-1) ** col) * self.matriz[0][col] * sub.determinante()
 
+        return det
+
+    def matrizAdjunta(self):
+        validarMatrizCuadrada(self.filas,self.columnas)
+
+        n = self.filas
+        cofactores = Matriz(n, n)
+
+        for i in range(n):
+            for j in range(n):
+
+                submatriz = [
+                    [self.matriz[f][c] for c in range(n) if c != j]
+                    for f in range(n) if f != i
+                ]
+
+                sub = Matriz(n - 1, n - 1)
+                sub.matriz = submatriz
+
+                cofactores.matriz[i][j] = ((-1) ** (i + j)) * sub.determinante()
+
+        adjunta = Matriz(n, n)
+        for i in range(n):
+            for j in range(n):
+                adjunta.matriz[j][i] = cofactores.matriz[i][j]
+
+        return adjunta
+
+    def inversa(self):
+        validarMatrizCuadrada(self.filas,self.columnas)
+
+        det = self.determinante()
+
+        if det == 0:
+            raise ValueError("La matriz no tiene inversa (determinante = 0)")
+
+        adjunta = self.matrizAdjunta()
+
+        inversa = adjunta.multiplicacionEscalar(1 / det)
+
+        return inversa
+
+    def traza(self):
+        validarMatrizCuadrada(self.filas,self.columnas)
+
+        suma = 0
+        for i in range(self.filas):
+            suma += self.matriz[i][i]
+
+        return suma
+
+    def transpuesta(self):
+        matTranspuesta = Matriz(self.columnas,self.filas)
+        for j in range(self.columnas):
+            for i in range(self.filas):
+                matTranspuesta.matriz[j][i] += self.matriz[i][j]
+        
+        return matTranspuesta    

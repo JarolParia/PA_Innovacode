@@ -1,15 +1,33 @@
 from Matriz import Matriz ##Importamos la clase de matriz para poder usarla en el main, no es necesario importar en matriz al main
-from ProyectoMatrices.validaciones import puedenMultiplicarse ##Importamos la funcion de validacion para poder usarla en el main
+from validaciones import puedenMultiplicarse ##Importamos la funcion de validacion para poder usarla en el main
 
 def Main():
     A = Matriz.crearMatriz()
     B = Matriz.crearMatriz()
     A.mostrarMatriz()
-    B.mostrarMatriz()
-    C = A.sumaMatrices(B)
-    k=2
-    D=A.sumaEscalar(k)
+    ##B.mostrarMatriz()
+    ##C = A.sumaMatrices(B)
+    ##k=2
+    ##D=A.sumaEscalar(k)
+    print("\nTraza de A:")
+    print(A.traza())
+   
 
+    """ print("\nDeterminante de A:")
+    print(A.determinante())"""
+
+    
+    """print("\nMatriz adjunta de A:")
+    adj = A.matrizAdjunta()
+    adj.mostrarMatriz()"""
+
+    print("\nMatriz transpuesta de A:")
+    trans = A.transpuesta()
+    trans.mostrarMatriz()
+
+    """print("\nMatriz inversa de A:")
+    inv = A.inversa()
+    inv.mostrarMatriz()"""
 
 
     """print("Suma de A y B:")
@@ -24,14 +42,14 @@ def Main():
     A.divisionEscalar(k).mostrarMatriz()"""
     
 
-    if (puedenMultiplicarse(A.columnas,B.filas)):
+"""if (puedenMultiplicarse(A.columnas,B.filas)):
         E = A.multiplicacionMatrices(B)
         print("Multiplicacion de A y B:")
         E.mostrarMatriz()
-
+"""
 
 
 if __name__ == "__main__":
-    Main()
+        Main()
 
 
