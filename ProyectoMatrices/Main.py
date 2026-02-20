@@ -2,14 +2,26 @@ from Matriz import Matriz ##Importamos la clase de matriz para poder usarla en e
 from validaciones import puedenMultiplicarse ##Importamos la funcion de validacion para poder usarla en el main
 
 
-def crear_matriz(nombre="A"):
+
+def crear_matriz(nombre="A", matriz_actual=None):
+
+    # Si ya existe una matriz, preguntar si quiere reutilizarla
+    if matriz_actual is not None:
+        print(f"\nYa existe la matriz {nombre}:")
+        matriz_actual.mostrarMatriz()
+        usar = input(f"¿Desea usar esta misma matriz {nombre}? (s/n): ").strip().lower()
+
+        if usar == "s":
+            return matriz_actual
+        # Si dice que no, continúa para crear una nueva
+
     while True:
         print(f"\nCreación de la matriz {nombre}")
         print("1. Manual")
         print("2. Aleatoria")
         print("0. Volver")
 
-        opcion = input("Opción: ")
+        opcion = input("Opción: ").strip()
 
         match opcion:
             case "1":
@@ -17,7 +29,7 @@ def crear_matriz(nombre="A"):
             case "2":
                 matriz = Matriz.crearMatriz()
             case "0":
-                return None
+                return matriz_actual  # conserva la anterior
             case _:
                 print("Opción inválida")
                 continue
@@ -53,25 +65,30 @@ def menu_binaria():
 
 
 def main():
+
+    A = None
+    B = None
+
     while True:
         print("\n===== CALCULADORA DE MATRICES =====")
         print("1. Operaciones unitarias / escalares")
         print("2. Operaciones binarias")
         print("0. Salir")
 
-        opcion = input("Seleccione una opción: ")
+        opcion = input("Seleccione una opción: ").strip()
 
         match opcion:
 
             # ================= UNITARIAS =================
             case "1":
-                A = crear_matriz("A")
+                A = crear_matriz("A", A)
                 if A is None:
+                    print("No hay matriz A disponible.")
                     continue
 
                 while True:
                     menu_unitaria()
-                    op = input("Seleccione operación: ")
+                    op = input("Seleccione operación: ").strip()
 
                     try:
                         print("\nMatriz A antes de la operación:")
@@ -134,17 +151,19 @@ def main():
 
             # ================= BINARIAS =================
             case "2":
-                A = crear_matriz("A")
+                A = crear_matriz("A", A)
                 if A is None:
+                    print("No hay matriz A disponible.")
                     continue
 
-                B = crear_matriz("B")
+                B = crear_matriz("B", B)
                 if B is None:
+                    print("No hay matriz B disponible.")
                     continue
 
                 while True:
                     menu_binaria()
-                    op = input("Seleccione operación: ")
+                    op = input("Seleccione operación: ").strip()
 
                     try:
                         print("\nMatriz A antes de la operación:")
@@ -174,6 +193,8 @@ def main():
                                 R.mostrarMatriz()
 
                             case "5":
+                                if not puedenMultiplicarse(A.columnas, B.filas):
+                                    continue
                                 R = A.multiplicacionMatrices(B)
                                 print("\nResultado Producto Matricial:")
                                 R.mostrarMatriz()
