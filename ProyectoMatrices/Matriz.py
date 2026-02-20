@@ -32,6 +32,24 @@ class Matriz:
             for j in range(columnas):
                 obj.matriz[i][j]= random.randint(1,20)
         return obj
+    @classmethod
+    def crear_manual(cls):
+        try:
+            filas = int(input("Ingrese número de filas: "))
+            columnas = int(input("Ingrese número de columnas: "))
+
+            obj = cls(filas, columnas)
+
+            for i in range(filas):
+                for j in range(columnas):
+                    valor = float(input(f"Valor [{i}][{j}]: "))
+                    obj.matriz[i][j] = valor
+
+            return obj
+
+        except ValueError:
+            print("❌ Entrada inválida. Debe ingresar números.")
+            return None
 
     def mostrarMatriz(self):
         for fila in self.matriz:
