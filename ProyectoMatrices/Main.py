@@ -193,8 +193,6 @@ def main():
                                 R.mostrarMatriz()
 
                             case "5":
-                                if not puedenMultiplicarse(A.columnas, B.filas):
-                                    continue
                                 R = A.multiplicacionMatrices(B)
                                 print("\nResultado Producto Matricial:")
                                 R.mostrarMatriz()

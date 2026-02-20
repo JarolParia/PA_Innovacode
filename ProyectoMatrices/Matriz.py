@@ -1,5 +1,5 @@
 import random
-from validaciones import validarMatrizCuadrada
+from validaciones import validarMatrizCuadrada, puedenMultiplicarse
 
 class Matriz:
     def __init__(self, filas, columnas):
@@ -33,6 +33,7 @@ class Matriz:
                 obj.matriz[i][j]= random.randint(1,20)
         return obj
     @classmethod
+
     def crear_manual(cls):
         try:
             filas = int(input("Ingrese número de filas: "))
@@ -48,7 +49,7 @@ class Matriz:
             return obj
 
         except ValueError:
-            print("❌ Entrada inválida. Debe ingresar números.")
+            print("Entrada inválida. Debe ingresar números.")
             return None
 
     def mostrarMatriz(self):
@@ -87,11 +88,14 @@ class Matriz:
     
     def multiplicacionMatrices(self, other):
 
+        if puedenMultiplicarse(self.columnas, other.filas) == False:
+            raise ValueError("Las columnas de la matriz A deben coincidir con las filas de la matriz B")
+
         matrizR = Matriz(self.filas, other.columnas)
 
-        for i in range (len(self.matriz)):
-            for j in range (len(other.matriz[0])):
-                for k in range (len(other.matriz)):
+        for i in range (self.filas):
+            for j in range (other.columnas):
+                for k in range (self.columnas):
                     matrizR.matriz[i][j] += self.matriz[i][k]*other.matriz[k][j]
 
         return matrizR
@@ -128,7 +132,7 @@ class Matriz:
         if self.filas == 2:
             return (self.matriz[0][0] * self.matriz[1][1]
                     - self.matriz[0][1] * self.matriz[1][0])
-         # Caso recursivo
+        # Caso recursivo
         det = 0
         for col in range(self.columnas):
             submatriz = [
@@ -196,6 +200,6 @@ class Matriz:
         matTranspuesta = Matriz(self.columnas,self.filas)
         for j in range(self.columnas):
             for i in range(self.filas):
-                matTranspuesta.matriz[j][i] += self.matriz[i][j]
+                matTranspuesta.matriz[j][i] = self.matriz[i][j]
         
         return matTranspuesta    

@@ -6,6 +6,6 @@ def puedenMultiplicarse(columnasA,filasB):
         print("Las columnas de la matriz A deben coincidir con las filas de la matriz B")
         return False
     
-def validarMatrizCuadrada(columnas,filas):
+def validarMatrizCuadrada(filas,columnas):
     if columnas != filas:
         raise ValueError("La matriz debe ser cuadrada")
