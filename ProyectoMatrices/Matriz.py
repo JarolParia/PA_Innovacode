@@ -2,10 +2,14 @@ import random
 from validaciones import validarMatrizCuadrada, puedenMultiplicarse
 
 class Matriz:
+   
+    # Inicializa una matriz de tamaño filas x columnas llena de ceros
     def __init__(self, filas, columnas):
         self.filas = filas
         self.columnas = columnas
         self.matriz = [[0 for _ in range(columnas)] for _ in range(filas)]
+        
+        
 #region crear matriz de manera aleatroria  
     @classmethod
     def crearMatriz(cls):
@@ -14,7 +18,7 @@ class Matriz:
                 filas = int(input("Ingrese el número de filas: "))
                 columnas = int(input("Ingrese el número de columnas: "))
 
-                if filas <= 0 or columnas <= 0:
+                if filas <= 0 or columnas <= 0:  # Validación: dimensiones mayores a 0
                     print("Los valores deben ser mayores que 0. Intente nuevamente")
                     continue
 
@@ -24,7 +28,7 @@ class Matriz:
 
         return cls._crear_aleatoria(filas, columnas)
 
-
+# Método que llena la matriz con números aleatorios entre 1 y 20
     @classmethod
     def _crear_aleatoria(cls,filas,columnas):
         obj = cls(filas, columnas)
@@ -64,22 +68,32 @@ class Matriz:
     def mostrarMatriz(self): #crea un espacio al rededor de los numeros, que se vea bonito
         print()
         for fila in self.matriz:
-            print(" ".join(f"{num:8.2f}" for num in fila))
+            print(" ".join(f"{num:8.2f}" for num in fila)) #la matriz formateada con dos decimales
         print()
+        
+        #metodo especial = Cuando alguien quiera convertir mi objeto en texto, así es como debe mostrarse.
+    def __str__(self):
+        texto = ""
+        for fila in self.matriz:
+          texto += " ".join(f"{num:8.2f}" for num in fila) + "\n"
+        return texto       
 
 #endregion
     
  
 #region operaciones de dos matrices ejemplo a<->b   
+# Método general para aplicar operaciones elemento a elemento
     def operacionesEntreMatrices(self,other,operacion):
-        if not isinstance(other, Matriz):
+        
+        if not isinstance(other, Matriz): # Verifica que el objeto sea una matriz
             raise TypeError("El objeto debe ser una matriz")
         
-        if self.filas != other.filas or self.columnas != other.columnas:
+        if self.filas != other.filas or self.columnas != other.columnas:# Verifica que tengan el mismo tamaño
             raise ValueError("Las matrices deben de tener el mismo tamaño")
         
         nueva_matriz = Matriz(self.filas, self.columnas)
-
+        
+        # Recorre cada posición y aplica la operación
         for i in range(self.filas):
             for j in range(self.columnas):
                 nueva_matriz.matriz[i][j] = operacion(self.matriz[i][j], other.matriz[i][j])
