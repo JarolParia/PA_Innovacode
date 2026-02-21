@@ -6,10 +6,9 @@ class Matriz:
         self.filas = filas
         self.columnas = columnas
         self.matriz = [[0 for _ in range(columnas)] for _ in range(filas)]
-    
+#region crear matriz de manera aleatroria  
     @classmethod
     def crearMatriz(cls):
-
         while True:
             try: 
                 filas = int(input("Ingrese el número de filas: "))
@@ -25,6 +24,7 @@ class Matriz:
 
         return cls._crear_aleatoria(filas, columnas)
 
+
     @classmethod
     def _crear_aleatoria(cls,filas,columnas):
         obj = cls(filas, columnas)
@@ -32,36 +32,50 @@ class Matriz:
             for j in range(columnas):
                 obj.matriz[i][j]= random.randint(1,20)
         return obj
+    
+#endregion
+    
+#region crear matriz de manera manual y mostrar la matriz 
+
     @classmethod
-
     def crear_manual(cls):
-        try:
-            filas = int(input("Ingrese número de filas: "))
-            columnas = int(input("Ingrese número de columnas: "))
+        while True:
+            try:
+                filas = int(input("Ingrese número de filas: "))
+                columnas = int(input("Ingrese número de columnas: "))
+                
+                if filas<=0 or columnas<=0:
+                    print("Las dimensiones deben ser mayores que 0.")
+                    continue
 
-            obj = cls(filas, columnas)
+                obj = cls(filas, columnas)
 
-            for i in range(filas):
-                for j in range(columnas):
-                    valor = float(input(f"Valor [{i}][{j}]: "))
-                    obj.matriz[i][j] = valor
+                for i in range(filas):
+                    for j in range(columnas):
+                        valor = float(input(f"Valor [{i}][{j}]: "))
+                        obj.matriz[i][j] = valor
 
-            return obj
+                return obj
+            
+            except ValueError:
+                print("Entrada inválida. Debe ingresar números.")
+        
 
-        except ValueError:
-            print("Entrada inválida. Debe ingresar números.")
-            return None
-
-    def mostrarMatriz(self):
+    def mostrarMatriz(self): #crea un espacio al rededor de los numeros, que se vea bonito
+        print()
         for fila in self.matriz:
-            print(fila)
+            print(" ".join(f"{num:8.2f}" for num in fila))
+        print()
 
-
+#endregion
+    
+ 
+#region operaciones de dos matrices ejemplo a<->b   
     def operacionesEntreMatrices(self,other,operacion):
         if not isinstance(other, Matriz):
             raise TypeError("El objeto debe ser una matriz")
         
-        if self.filas != other. filas or self.columnas != other.columnas:
+        if self.filas != other.filas or self.columnas != other.columnas:
             raise ValueError("Las matrices deben de tener el mismo tamaño")
         
         nueva_matriz = Matriz(self.filas, self.columnas)
@@ -71,8 +85,6 @@ class Matriz:
                 nueva_matriz.matriz[i][j] = operacion(self.matriz[i][j], other.matriz[i][j])
 
         return nueva_matriz
-    
-
 
     def sumaMatrices(self,other):
         return self.operacionesEntreMatrices(other,lambda a,b: a+b)
@@ -81,9 +93,14 @@ class Matriz:
         return self.operacionesEntreMatrices(other,lambda a,b: a-b)
     
     def divisionMatrices(self,other):
-        return self.operacionesEntreMatrices(other,lambda a,b: a/b)
+        def dividir(a,b):
+            if b == 0:
+                raise ZeroDivisionError("\nNo se puede dividir entre 0 en la matriz B")
+            return a/b
+        return self.operacionesEntreMatrices(other, dividir)
     
-    def multiplicacionMatricesHadaman(self,other):
+    
+    def multiplicacionMatricesHadamard(self,other):
         return self.operacionesEntreMatrices(other,lambda a,b: a*b)
     
     def multiplicacionMatrices(self, other):
@@ -98,8 +115,11 @@ class Matriz:
                 for k in range (self.columnas):
                     matrizR.matriz[i][j] += self.matriz[i][k]*other.matriz[k][j]
 
-        return matrizR
+        return matrizR #matriz resultado
     
+#endregion    
+    
+#region operaciones con escalar
 
     def operacionesEscalares(self,k,operacion):
 
@@ -121,8 +141,13 @@ class Matriz:
         return self.operacionesEscalares(k, lambda a,k:a*k)
     
     def divisionEscalar(self,k):
+        if k==0:
+            raise ZeroDivisionError("\nNo se puede dividir entre 0")
         return self.operacionesEscalares(k, lambda a,k:a/k )
 
+#endregion
+
+#region operaciones avanzadas
     def determinante(self):
         validarMatrizCuadrada(self.filas,self.columnas)
         # Caso base: matriz 1x1
@@ -203,3 +228,4 @@ class Matriz:
                 matTranspuesta.matriz[j][i] = self.matriz[i][j]
         
         return matTranspuesta    
+#endregion

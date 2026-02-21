@@ -26,7 +26,7 @@ def crear_matriz(nombre="A", matriz_actual=None):
             case "2":
                 matriz = Matriz.crearMatriz()
             case "0":
-                return matriz_actual  # conserva la anterior
+                return matriz_actual  
             case _:
                 print("Opción inválida")
                 continue
@@ -36,9 +36,10 @@ def crear_matriz(nombre="A", matriz_actual=None):
             matriz.mostrarMatriz()
             return matriz
 
+#region menus
 
 def menu_unitaria():
-    print("\nOPERACIONES UNITARIAS / ESCALARES")
+    titulo("OPERACIONES UNARIAS / ESCALARES")
     print("1. Suma escalar")
     print("2. Resta escalar")
     print("3. Multiplicación escalar")
@@ -50,9 +51,8 @@ def menu_unitaria():
     print("9. Transpuesta")
     print("0. Volver")
 
-
 def menu_binaria():
-    print("\nOPERACIONES BINARIAS")
+    titulo("OPERACIONES BINARIAS")
     print("1. Suma")
     print("2. Resta")
     print("3. División")
@@ -60,3 +60,23 @@ def menu_binaria():
     print("5. Producto matricial")
     print("0. Volver")
 
+def menu_principal():
+    titulo("CALCULADORA DE MATRICES")
+    print("1. Operaciones unitarias / escalares")
+    print("2. Operaciones binarias")
+    print("0. Salir")
+
+#endregion
+
+def titulo(texto): #decoracion lineas para el titulo
+    print("\n" + "="*50)
+    print(f"{texto.center(50)}")
+    print("="*50)
+
+def pausa():
+    input("\nPresione ENTER para continuar...")
+
+import os
+
+def limpiar():
+    os.system("cls" if os.name == "nt" else "clear")

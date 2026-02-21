@@ -1,6 +1,6 @@
 from Matriz import Matriz ##Importamos la clase de matriz para poder usarla en el main, no es necesario importar en matriz al main
-from validaciones import puedenMultiplicarse ##Importamos la funcion de validacion para poder usarla en el main
-from Utils import crear_matriz, menu_unitaria, menu_binaria #importaciones de todo lo del utils
+from validaciones import mostrar_estado##Importamos la funcion de validacion para poder usarla en el main
+from Utils import crear_matriz, limpiar, menu_principal, menu_unitaria, menu_binaria, pausa #importaciones de todo lo del utils
 
 def main():
 
@@ -8,149 +8,125 @@ def main():
     B = None
 
     while True:
-        print("\n===== CALCULADORA DE MATRICES =====")
-        print("1. Operaciones unitarias / escalares")
-        print("2. Operaciones binarias")
-        print("0. Salir")
-
+        limpiar()
+        menu_principal()
         opcion = input("Seleccione una opción: ").strip()
 
         match opcion:
 
+#region operaciones unitarias
             # ================= UNITARIAS =================
             case "1":
                 A = crear_matriz("A", A)
                 if A is None:
                     print("No hay matriz A disponible.")
                     continue
-
+                    
+                operaciones_unitarias = {
+                    "1": {"tipo": "escalar", "funcion": A.sumaEscalar, "nombre": "Suma escalar"},
+                    "2": {"tipo": "escalar", "funcion": A.restaEscalar, "nombre": "Resta escalar"},
+                    "3": {"tipo": "escalar", "funcion": A.multiplicacionEscalar, "nombre": "Multiplicación escalar"},
+                    "4": {"tipo": "escalar", "funcion": A.divisionEscalar, "nombre": "División escalar"},
+                    "5": {"tipo": "numero", "funcion": A.determinante, "nombre": "Determinante"},
+                    "6": {"tipo": "matriz", "funcion": A.matrizAdjunta, "nombre": "Matriz adjunta"},
+                    "7": {"tipo": "matriz", "funcion": A.inversa, "nombre": "Inversa"},
+                    "8": {"tipo": "numero", "funcion": A.traza, "nombre": "Traza"},
+                    "9": {"tipo": "matriz", "funcion": A.transpuesta, "nombre": "Transpuesta"},
+                }
+                    
                 while True:
                     menu_unitaria()
-                    op = input("Seleccione operación: ").strip()
+                    opcion = input("Seleccione operación: ").strip()
 
                     try:
-                        print("\nMatriz A antes de la operación:")
-                        A.mostrarMatriz()
+                        if opcion == "0":
+                            break
+                        
+                        if opcion not in operaciones_unitarias:
+                            print ("opción inválida")
+                            continue
 
-                        match op:
-                            case "1":
-                                k = float(input("Escalar: "))
-                                R = A.sumaEscalar(k)
-                                print("\nResultado A +", k)
-                                R.mostrarMatriz()
+                        operacion = operaciones_unitarias[opcion]
 
-                            case "2":
-                                k = float(input("Escalar: "))
-                                R = A.restaEscalar(k)
-                                print("\nResultado A -", k)
-                                R.mostrarMatriz()
+                        mostrar_estado(A)
 
-                            case "3":
-                                k = float(input("Escalar: "))
-                                R = A.multiplicacionEscalar(k)
-                                print("\nResultado A *", k)
-                                R.mostrarMatriz()
+                        if operacion["tipo"] == "escalar":
+                            escalar = float(input("Escalar:"))
+                            matriz_resultado = operacion["funcion"](escalar)
+                            print(f"\nResultado {operacion['nombre']} A y {escalar}:")
+                            matriz_resultado.mostrarMatriz()
+                            pausa()
 
-                            case "4":
-                                k = float(input("Escalar: "))
-                                R = A.divisionEscalar(k)
-                                print("\nResultado A /", k)
-                                R.mostrarMatriz()
-
-                            case "5":
-                                print("\nDeterminante:", A.determinante())
-
-                            case "6":
-                                R = A.matrizAdjunta()
-                                print("\nMatriz Adjunta:")
-                                R.mostrarMatriz()
-
-                            case "7":
-                                R = A.inversa()
-                                print("\nMatriz Inversa:")
-                                R.mostrarMatriz()
-
-                            case "8":
-                                print("\nTraza:", A.traza())
-
-                            case "9":
-                                R = A.transpuesta()
-                                print("\nMatriz Transpuesta:")
-                                R.mostrarMatriz()
-
-                            case "0":
-                                break
-
-                            case _:
-                                print("Opción inválida")
+                        elif operacion["tipo"] == "numero":
+                            matriz_resultado = operacion["funcion"]()
+                            print(f"\nResultado {operacion['nombre']} de A: {matriz_resultado}")
+                            pausa()
+                        
+                        elif operacion["tipo"] == "matriz":
+                            matriz_resultado = operacion["funcion"]()
+                            print(f"\nResultado {operacion['nombre']} de A:")
+                            matriz_resultado.mostrarMatriz()
+                            pausa()
 
                     except Exception as e:
                         print("Error:", e)
+                        pausa()
+
+#endregion
+
+#region operaciones binarias
 
             # ================= BINARIAS =================
             case "2":
                 A = crear_matriz("A", A)
                 if A is None:
-                    print("No hay matriz A disponible.")
+                    print("\nNo hay matriz A disponible.")
                     continue
 
                 B = crear_matriz("B", B)
                 if B is None:
-                    print("No hay matriz B disponible.")
+                    print("\nNo hay matriz B disponible.")
                     continue
+
+                operaciones_binarias = {
+                    "1": {"funcion": A.sumaMatrices, "nombre": "Suma de matrices"},
+                    "2": {"funcion": A.restaMatrices, "nombre": "Resta de matrices"},
+                    "3": {"funcion": A.divisionMatrices, "nombre": "Division de matrices"},
+                    "4": {"funcion": A.multiplicacionMatricesHadamard, "nombre": "Multiplicacion Hadamard"},
+                    "5": {"funcion": A.multiplicacionMatrices, "nombre": "producto matricial"},
+                }
 
                 while True:
                     menu_binaria()
-                    op = input("Seleccione operación: ").strip()
+                    opcion = input("Seleccione operación: ").strip()
 
                     try:
-                        print("\nMatriz A antes de la operación:")
-                        A.mostrarMatriz()
-                        print("\nMatriz B antes de la operación:")
-                        B.mostrarMatriz()
+                        if opcion == "0":
+                            break
 
-                        match op:
-                            case "1":
-                                R = A.sumaMatrices(B)
-                                print("\nResultado A + B:")
-                                R.mostrarMatriz()
+                        if opcion not in operaciones_binarias:
+                            print("Opcion invalida")
+                            continue
 
-                            case "2":
-                                R = A.restaMatrices(B)
-                                print("\nResultado A - B:")
-                                R.mostrarMatriz()
+                        mostrar_estado(A, B)
 
-                            case "3":
-                                R = A.divisionMatrices(B)
-                                print("\nResultado A / B:")
-                                R.mostrarMatriz()
-
-                            case "4":
-                                R = A.multiplicacionMatricesHadaman(B)
-                                print("\nResultado Hadamard:")
-                                R.mostrarMatriz()
-
-                            case "5":
-                                R = A.multiplicacionMatrices(B)
-                                print("\nResultado Producto Matricial:")
-                                R.mostrarMatriz()
-
-                            case "0":
-                                break
-
-                            case _:
-                                print("Opción inválida")
+                        operacion = operaciones_binarias[opcion]
+                        matriz_resultado = operacion["funcion"](B)
+                        print(f"\nResultado {operacion['nombre']} de A y B:")
+                        matriz_resultado.mostrarMatriz()
+                        pausa()
 
                     except Exception as e:
                         print("Error:", e)
+                        pausa()
 
             case "0":
-                print("Programa finalizado")
+                print("\nPrograma finalizado")
                 break
 
             case _:
-                print("Opción inválida")
+                print("\n"+"Opción inválida")
+#endregion
 
-
-if __name__ == "__main__":
+if __name__ == "__main__": #conexion
     main()
