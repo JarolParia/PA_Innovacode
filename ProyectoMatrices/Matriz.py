@@ -2,7 +2,7 @@ import random
 from validaciones import validarMatrizCuadrada, puedenMultiplicarse
 
 class Matriz:
-   
+
     # Inicializa una matriz de tamaño filas x columnas llena de ceros
     def __init__(self, filas, columnas):
         self.filas = filas
@@ -75,12 +75,12 @@ class Matriz:
     def __str__(self):
         texto = ""
         for fila in self.matriz:
-          texto += " ".join(f"{num:8.2f}" for num in fila) + "\n"
+            texto += " ".join(f"{num:8.2f}" for num in fila) + "\n"
         return texto       
 
 #endregion
     
- 
+
 #region operaciones de dos matrices ejemplo a<->b   
 # Método general para aplicar operaciones elemento a elemento
     def operacionesEntreMatrices(self,other,operacion):
@@ -163,48 +163,64 @@ class Matriz:
 
 #region operaciones avanzadas
     def determinante(self):
-        validarMatrizCuadrada(self.filas,self.columnas)
-        # Caso base: matriz 1x1
+        # Verifica que la matriz sea cuadrada (misma cantidad de filas y columnas)
+        validarMatrizCuadrada(self.filas, self.columnas)
+
+        # Caso base: matriz de 1x1 → el determinante es el único elemento
         if self.filas == 1:
             return self.matriz[0][0]
-        # Caso base: matriz 2x2
+
+        # Caso base: matriz de 2x2 → fórmula directa
         if self.filas == 2:
             return (self.matriz[0][0] * self.matriz[1][1]
                     - self.matriz[0][1] * self.matriz[1][0])
-        # Caso recursivo
+
+        # Caso general: expansión por cofactores usando la primera fila
         det = 0
         for col in range(self.columnas):
+
+            # Construir la submatriz eliminando la fila 0 y la columna actual
             submatriz = [
                 [self.matriz[i][j] for j in range(self.columnas) if j != col]
                 for i in range(1, self.filas)
             ]
 
+            # Crear un nuevo objeto Matriz con la submatriz
             sub = Matriz(self.filas - 1, self.columnas - 1)
             sub.matriz = submatriz
 
+            # Aplicar la fórmula del cofactor y llamar recursivamente al determinante
             det += ((-1) ** col) * self.matriz[0][col] * sub.determinante()
 
+        # Retornar el determinante total
         return det
 
+
     def matrizAdjunta(self):
-        validarMatrizCuadrada(self.filas,self.columnas)
+        # Verifica que la matriz sea cuadrada
+        validarMatrizCuadrada(self.filas, self.columnas)
 
         n = self.filas
         cofactores = Matriz(n, n)
 
+        # Calcular la matriz de cofactores
         for i in range(n):
             for j in range(n):
 
+                # Crear la submatriz eliminando la fila i y la columna j
                 submatriz = [
                     [self.matriz[f][c] for c in range(n) if c != j]
                     for f in range(n) if f != i
                 ]
 
+                # Crear objeto matriz para calcular su determinante
                 sub = Matriz(n - 1, n - 1)
                 sub.matriz = submatriz
 
+                # Calcular el cofactor usando el signo (-1)^(i+j)
                 cofactores.matriz[i][j] = ((-1) ** (i + j)) * sub.determinante()
 
+        # La matriz adjunta es la transpuesta de la matriz de cofactores
         adjunta = Matriz(n, n)
         for i in range(n):
             for j in range(n):

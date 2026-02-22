@@ -20,7 +20,7 @@ def main():
             case "1":
                 # Crear o actualizar matriz A
                 A = crear_matriz("A", A)
-                 # Si no se creó correctamente, vuelve al menú
+                # Si no se creó correctamente, vuelve al menú
                 if A is None:
                     print("No hay matriz A disponible.")
                     continue
@@ -40,7 +40,7 @@ def main():
                     "9": {"tipo": "matriz", "funcion": A.transpuesta, "nombre": "Transpuesta"},
                 }
                 
-                 # Submenú de operaciones unitarias
+                # Submenú de operaciones unitarias
                 while True:
                     menu_unitaria()
                     opcion = input("Seleccione operación: ").strip()
@@ -65,17 +65,18 @@ def main():
                             # GUARDAR EN HISTORIAL
                             guardar_operacion(
                                 f"{operacion['nombre']} a matriz A con escalar {escalar}",
-                                matriz_resultado
+                                matriz_resultado,
+                                A
                             )
                             pausa()
-                         # -------OPERACIONES QUE DEVUELVEN NÚMERO ----------
+                        # -------OPERACIONES QUE DEVUELVEN NÚMERO ----------
                         elif operacion["tipo"] == "numero":
                             matriz_resultado = operacion["funcion"]()
                             print(f"\nResultado {operacion['nombre']} de A: {matriz_resultado}")
-                             # GUARDAR EN HISTORIAL
+                            # GUARDAR EN HISTORIAL
                             guardar_operacion(
                                 f"{operacion['nombre']} de matriz A",
-                                matriz_resultado
+                                matriz_resultado,A
                             )
                             pausa()
                         # ------- OPERACIONES QUE DEVUELVEN MATRIZ ----------
@@ -83,7 +84,7 @@ def main():
                             matriz_resultado = operacion["funcion"]()
                             print(f"\nResultado {operacion['nombre']} de A:")
                             matriz_resultado.mostrarMatriz()
-                             # GUARDAR EN HISTORIAL
+                            # GUARDAR EN HISTORIAL
                             guardar_operacion(
                                 f"{operacion['nombre']} de matriz A",
                                 matriz_resultado
@@ -110,7 +111,7 @@ def main():
                     print("\nNo hay matriz B disponible.")
                     continue
                 
-               # Diccionario de operaciones binarias entre A y B
+                # Diccionario de operaciones binarias entre A y B
                 operaciones_binarias = {
                     "1": {"funcion": A.sumaMatrices, "nombre": "Suma de matrices"},
                     "2": {"funcion": A.restaMatrices, "nombre": "Resta de matrices"},
@@ -135,14 +136,14 @@ def main():
                         mostrar_estado(A, B)
 
                         operacion = operaciones_binarias[opcion]
-                          # Ejecutar operación entre A y B
+                        # Ejecutar operación entre A y B
                         matriz_resultado = operacion["funcion"](B)
                         print(f"\nResultado {operacion['nombre']} de A y B:")
                         matriz_resultado.mostrarMatriz()
                         # GUARDAR EN HISTORIAL
                         guardar_operacion(
                             f"{operacion['nombre']} entre matriz A y matriz B",
-                            matriz_resultado
+                            matriz_resultado,A,B
                         )
                         pausa()
 
