@@ -1,6 +1,7 @@
 from datetime import datetime
+import os
 
-RUTA_ARCHIVO = "historial.txt"
+RUTA_ARCHIVO = os.path.join(os.path.dirname(__file__), "historial.txt")
 
 def guardar_operacion(tipo_operacion, resultado, A=None, B=None):
     fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
