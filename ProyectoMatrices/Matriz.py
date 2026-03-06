@@ -7,7 +7,7 @@ class Matriz:
     def __init__(self, filas, columnas):
         self.filas = filas
         self.columnas = columnas
-        self.matriz = [[0 for _ in range(columnas)] for _ in range(filas)]
+        self.matriz = [[0 for _ in range(columnas)] for _ in range(filas)] #lista donde se guardan los valores 
         
         
 #region crear matriz de manera aleatroria  
@@ -15,18 +15,18 @@ class Matriz:
     def crearMatriz(cls):
         while True:
             try: 
-                filas = int(input("Ingrese el número de filas: "))
-                columnas = int(input("Ingrese el número de columnas: "))
+                filas = int(input("Ingrese el número de filas no mayor a 10: "))
+                columnas = int(input("Ingrese el número de columnas no mayor a 10: "))
 
-                if filas <= 0 or columnas <= 0:  # Validación: dimensiones mayores a 0
-                    print("Los valores deben ser mayores que 0. Intente nuevamente")
+                if filas <= 0 or filas > 10 or columnas <= 0 or columnas > 10:  # Validación: dimensiones mayores a 0
+                    print("Los valores deben ser mayores que 0 y menores que 10. Intente nuevamente")
                     continue
-
-                break
+                
+                return cls._crear_aleatoria(filas, columnas)
             except ValueError:
                 print("Entrada no valida, porfavor ingrese un número entero")
 
-        return cls._crear_aleatoria(filas, columnas)
+        
 
 # Método que llena la matriz con números aleatorios entre 1 y 20
     @classmethod
@@ -36,6 +36,7 @@ class Matriz:
             for j in range(columnas):
                 obj.matriz[i][j]= random.randint(1,20)
         return obj
+                      
     
 #endregion
     
@@ -50,6 +51,9 @@ class Matriz:
                 
                 if filas<=0 or columnas<=0:
                     print("Las dimensiones deben ser mayores que 0.")
+                    continue
+                if filas >=10 or columnas >= 10: #validacion dimensiones
+                    print("el valor es muy grande pon uno mas pequeño")
                     continue
 
                 obj = cls(filas, columnas)

@@ -17,6 +17,7 @@ def main():
 
 #region operaciones unitarias
             # ================= UNITARIAS =================
+
             case "1":
                 # Crear o actualizar matriz A
                 A = crear_matriz("A", A)
@@ -24,7 +25,8 @@ def main():
                 if A is None:
                     print("No hay matriz A disponible.")
                     continue
-                    
+                
+                
                 # Diccionario que contiene todas las operaciones unitarias
                 # tipo: define qué devuelve la operación (matriz o número)
             
@@ -48,6 +50,7 @@ def main():
                     try:
                         if opcion == "0":
                             break
+                
                         
                         if opcion not in operaciones_unitarias:
                             print ("opción inválida")
@@ -157,7 +160,10 @@ def main():
 
             case _:
                 print("\n"+"Opción inválida")
-#endregion
+#endregion2
 
-if __name__ == "__main__": #conexion
+
+if __name__ == "__main__": #conexion2
+
+
     main()
