@@ -5,7 +5,7 @@ Página para cargar, sincronizar y actualizar la base de datos.
 Mantiene el estilo original del proyecto.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone , timedelta
 
 import streamlit as st
 
@@ -136,7 +136,18 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
+@st.cache_data(ttl=600, show_spinner=False)
+def get_api_total() -> int:
+    """Obtiene el total de registros disponibles en la API."""
+    try:
+        import requests
+        url = "https://www.datos.gov.co/resource/ms9j-p68v.json"
+        r = requests.get(url, params={"$select": "count(*)"}, timeout=10)
+        data = r.json()
+        return int(data[0].get("count", 5000))
+    except Exception:
+        return 5000
+    
 def fmt_num(value, decimals=0):
     if value is None:
         return "—"
@@ -144,18 +155,20 @@ def fmt_num(value, decimals=0):
         return f"{value:,.{decimals}f}"
     return str(value)
 
+ZONA_COLOMBIA = timezone(timedelta(hours=-5))
 
 def fmt_dt(value):
     if not value:
         return "Sin registro"
     try:
         dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-        return dt.strftime("%Y-%m-%d %H:%M:%S")
+        dt_col = dt.astimezone(ZONA_COLOMBIA)
+        return dt_col.strftime("%Y-%m-%d %H:%M:%S")
     except Exception:
         return str(value)
 
 
-def ejecutar_con_feedback(dao, *, full=False, prune_missing=True, only_if_changed=True):
+def ejecutar_con_feedback(dao, *, full=False, prune_missing=True, only_if_changed=True, record_limit=None):
     logs = []
     log_box = st.empty()
 
@@ -172,13 +185,14 @@ def ejecutar_con_feedback(dao, *, full=False, prune_missing=True, only_if_change
 
     with st.spinner("Procesando actualización de datos..."):
         if full:
-            stats = full_reload(dao, progress_callback=progress_callback)
+            stats = full_reload(dao, progress_callback=progress_callback, record_limit=record_limit)
         else:
             stats = run_etl(
                 dao,
                 progress_callback=progress_callback,
                 prune_missing=prune_missing,
                 only_if_changed=only_if_changed,
+                record_limit=record_limit,
             )
 
     clear_data_cache()
@@ -238,6 +252,26 @@ left, right = st.columns([1.1, 0.9])
 with left:
     st.markdown('<div class="panel-card"><h4>🔄 Opciones de actualización</h4><div class="small-note">Selecciona la acción que deseas ejecutar sobre la información disponible.</div></div>', unsafe_allow_html=True)
 
+    # ── Slider de cantidad ──────────────────────────────────────────
+    api_total = get_api_total()
+    usar_limite = st.checkbox(
+        "Cargar solo una cantidad específica de registros",
+        value=False,
+        help="Útil para pruebas o cuando no necesitas todos los datos.",
+    )
+    record_limit = None
+    if usar_limite:
+        record_limit = st.slider(
+            "Cantidad de registros a cargar",
+            min_value=100,
+            max_value=api_total,
+            value=min(1000, api_total),
+            step=100,
+            help=f"La API tiene aproximadamente {api_total:,} registros disponibles.",
+        )
+        st.caption(f"Se cargarán **{record_limit:,}** de ~{api_total:,} registros disponibles.")
+    # ──────────────────────────────────────────────────────────────
+
     prune_missing = st.checkbox(
         "Eliminar registros que ya no estén disponibles",
         value=True,
@@ -276,6 +310,7 @@ with left:
             full=False,
             prune_missing=prune_missing,
             only_if_changed=only_if_changed,
+            record_limit=record_limit,
         )
     elif run_smart:
         stats = ejecutar_con_feedback(
@@ -283,6 +318,7 @@ with left:
             full=False,
             prune_missing=prune_missing,
             only_if_changed=only_if_changed,
+            record_limit=record_limit,
         )
     elif run_full:
         stats = ejecutar_con_feedback(
@@ -290,6 +326,7 @@ with left:
             full=True,
             prune_missing=False,
             only_if_changed=False,
+            record_limit=record_limit,
         )
 
     if stats is not None:

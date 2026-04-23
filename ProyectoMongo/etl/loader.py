@@ -141,7 +141,7 @@ def fetch_record_batches(progress_callback=None, session=None):
 
 # ─── Proceso principal ────────────────────────────────────────────────────────
 
-def run_etl(dao, progress_callback=None, prune_missing=True, only_if_changed=False) -> dict:
+def run_etl(dao, progress_callback=None, prune_missing=True, only_if_changed=False, record_limit=None) -> dict:
     """
     Ejecuta el pipeline completo: extrae, limpia y sincroniza en MongoDB.
     A diferencia de la versión anterior, no borra toda la colección al inicio.
@@ -174,9 +174,18 @@ def run_etl(dao, progress_callback=None, prune_missing=True, only_if_changed=Fal
 
     sync_token = sync_started_at.isoformat()
     processed = 0
+    total_fetched = 0
 
     for raw_batch in fetch_record_batches(progress_callback=progress_callback, session=session):
         clean_batch = []
+
+        if record_limit is not None:
+            remaining = record_limit - total_fetched
+            if remaining <= 0:
+                break
+            if len(raw_batch) > remaining:
+                raw_batch = raw_batch[:remaining]
+            total_fetched += len(raw_batch)
 
         for record in raw_batch:
             try:
@@ -227,10 +236,9 @@ def run_etl(dao, progress_callback=None, prune_missing=True, only_if_changed=Fal
     return stats
 
 
-def full_reload(dao, progress_callback=None) -> dict:
-    """Fuerza una recarga completa cuando el usuario lo necesite."""
+def full_reload(dao, progress_callback=None, record_limit=None) -> dict:
     notify(progress_callback, stage="prepare", message="Eliminando datos actuales antes de recargar...")
     deleted_before = dao.delete_all()
-    stats = run_etl(dao, progress_callback=progress_callback, prune_missing=False, only_if_changed=False)
+    stats = run_etl(dao, progress_callback=progress_callback, prune_missing=False, only_if_changed=False, record_limit=record_limit)
     stats["deleted_before_reload"] = deleted_before
     return stats
