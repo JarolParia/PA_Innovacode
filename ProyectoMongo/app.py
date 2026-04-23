@@ -8,6 +8,7 @@ Solo contiene la UI — la lógica vive en etl/ y dao/.
 import streamlit as st
 from dao.mongo_dao import MongoDAO
 from etl.loader import run_etl
+from services.data_service import clear_data_cache
 
 # ─── Configuración de página ──────────────────────────────────────────────────
 
@@ -28,12 +29,60 @@ st.markdown("""
     [data-testid="stSidebar"] {
         background-color: #1e293b;
     }
+    .hero-panel {
+        background: linear-gradient(135deg, rgba(15, 39, 68, 0.96), rgba(30, 58, 95, 0.92));
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 18px;
+        padding: 1.5rem 1.6rem 1.35rem 1.6rem;
+        box-shadow: 0 18px 40px rgba(2, 8, 23, 0.22);
+        margin-bottom: 0.5rem;
+    }
+    .hero-kicker {
+        display: inline-block;
+        padding: 0.22rem 0.7rem;
+        border-radius: 999px;
+        background: rgba(56, 189, 248, 0.12);
+        border: 1px solid rgba(56, 189, 248, 0.28);
+        color: #bae6fd;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.9rem;
+    }
+    .hero-title {
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: #f8fafc;
+        line-height: 1.08;
+        margin-bottom: 0.45rem;
+    }
+    .hero-sub {
+        color: #cbd5e1;
+        font-size: 1.05rem;
+        margin-bottom: 1rem;
+    }
+    .hero-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+        margin-top: 0.9rem;
+    }
+    .hero-tag {
+        display: inline-block;
+        padding: 0.28rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.42);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        color: #e2e8f0;
+        font-size: 0.82rem;
+    }
     .metric-card {
         background: linear-gradient(135deg, #1e3a5f, #0f2744);
         border: 1px solid #334155;
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 1.2rem 1.5rem;
         text-align: center;
+        box-shadow: 0 14px 30px rgba(2, 8, 23, 0.16);
     }
     .metric-card h3 {
         color: #94a3b8;
@@ -48,51 +97,65 @@ st.markdown("""
         font-weight: 700;
         margin: 0;
     }
-    .hero-title {
-        font-size: 2.8rem;
-        font-weight: 800;
-        color: #f1f5f9;
-        line-height: 1.1;
-        margin-bottom: 0.5rem;
-    }
-    .hero-sub {
-        color: #94a3b8;
-        font-size: 1.1rem;
-        margin-bottom: 2rem;
+    .section-label {
+        color: #e2e8f0;
+        font-size: 1.12rem;
+        font-weight: 700;
+        margin-bottom: 0.6rem;
     }
     .nav-card {
         background: #1e293b;
         border: 1px solid #334155;
         border-left: 4px solid #38bdf8;
-        border-radius: 8px;
+        border-radius: 12px;
         padding: 1rem 1.2rem;
         margin-bottom: 0.8rem;
+        box-shadow: 0 10px 24px rgba(2, 8, 23, 0.12);
     }
-    .nav-card h4 { color: #38bdf8; margin: 0 0 0.3rem 0; }
-    .nav-card p  { color: #94a3b8; margin: 0; font-size: 0.9rem; }
-    .status-ok   { color: #4ade80; font-weight: 600; }
-    .status-err  { color: #f87171; font-weight: 600; }
+    .nav-card h4 {
+        color: #38bdf8;
+        margin: 0 0 0.32rem 0;
+        font-size: 1rem;
+    }
+    .nav-card p  {
+        color: #94a3b8;
+        margin: 0;
+        font-size: 0.92rem;
+        line-height: 1.45;
+    }
     div[data-testid="stButton"] > button {
         background: linear-gradient(90deg, #0369a1, #0284c7);
         color: white;
         border: none;
-        border-radius: 8px;
-        padding: 0.6rem 1.5rem;
+        border-radius: 10px;
+        padding: 0.65rem 1.5rem;
         font-weight: 600;
         width: 100%;
-        transition: opacity 0.2s;
+        transition: 0.2s ease;
+        box-shadow: 0 10px 24px rgba(3, 105, 161, 0.25);
     }
-    div[data-testid="stButton"] > button:hover { opacity: 0.85; }
+    div[data-testid="stButton"] > button:hover {
+        opacity: 0.92;
+        transform: translateY(-1px);
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ─── Hero ─────────────────────────────────────────────────────────────────────
 
 st.markdown("""
-<div class="hero-title">🎓 Matrículas Escolares</div>
-<div class="hero-sub">
-    San Pedro de los Milagros · Antioquia · 2014<br>
-    Datos abiertos del Ministerio de Educación Nacional de Colombia
+<div class="hero-panel">
+    <div class="hero-kicker">Panel principal</div>
+    <div class="hero-title">🎓 Matrículas Escolares</div>
+    <div class="hero-sub">
+        San Pedro de los Milagros · Antioquia · 2014<br>
+        Consulta rápida del comportamiento de la matrícula escolar.
+    </div>
+    <div class="hero-tags">
+        <span class="hero-tag">SIMAT</span>
+        <span class="hero-tag">Primaria</span>
+        <span class="hero-tag">Datos abiertos</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -101,10 +164,7 @@ st.divider()
 # ─── Sidebar: estado de conexión y carga de datos ─────────────────────────────
 
 with st.sidebar:
-    st.markdown("## ⚙️ Panel de Control")
-    st.caption("Gestión de datos y estado del sistema")
-
-    st.markdown("---")
+  
 
     # ─── Estado MongoDB ────────────────────────────────────────────────
     st.markdown("### 🗄️ Estado de MongoDB")
@@ -117,41 +177,11 @@ with st.sidebar:
         st.caption(f"Documentos en BD: **{total_docs:,}**")
     except Exception as e:
         st.error("● Sin conexión")
-        st.caption(str(e))
+        st.caption("No fue posible consultar la base de datos.")
         total_docs = 0
 
     st.markdown("---")
 
-    # ─── Actualizar datos ───────────────────────────────────────────────
-    st.markdown("### 🔄 Actualizar datos")
-    st.caption("Consume la API y actualiza la colección en MongoDB.")
-
-    if st.button("📥 Cargar / Actualizar datos"):
-        if not dao.is_connected():
-            st.error("No hay conexión con MongoDB.")
-        else:
-            try:
-                with st.spinner("Eliminando datos anteriores..."):
-                    deleted = dao.delete_all()
-
-                with st.spinner("Descargando datos desde la API..."):
-                    stats = run_etl(dao)
-
-                st.success("Carga completada correctamente ✅")
-                st.info(
-                    f"📊 Total API: {stats['total_api']:,}\n"
-                    f"🗑️ Eliminados: {deleted:,}\n"
-                    f"📥 Insertados: {stats['inserted']:,}\n"
-                    f"✏️ Modificados: {stats['modified']:,}\n"
-                    f"⚠️ Errores: {stats['errors']:,}"
-                )
-
-                st.rerun()
-
-            except Exception as e:
-                st.error(f"Error en ETL: {e}")
-
-    st.markdown("---")
 
     # ─── Info del proyecto ──────────────────────────────────────────────
     st.markdown("### ℹ️ Información")
@@ -214,7 +244,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # ─── Descripción del dataset ──────────────────────────────────────────────────
 
-st.markdown("### 📋 Sobre el dataset")
+st.markdown('<div class="section-label">📋 Sobre el dataset</div>', unsafe_allow_html=True)
 st.markdown("""
 Este conjunto de datos proviene del **Sistema Integrado de Matrícula (SIMAT)** del
 Ministerio de Educación Nacional de Colombia, publicado en el portal de datos abiertos
@@ -227,7 +257,7 @@ Contiene registros de estudiantes de **primaria** del municipio de
 col_a, col_b = st.columns(2)
 
 with col_a:
-    st.markdown("**Campos principales analizados:**")
+    st.markdown("**Campos principales**")
     campos = {
         "estado": "Matrícula activa o retirado",
         "genero": "Hombre / Mujer",
@@ -242,17 +272,19 @@ with col_a:
         st.markdown(f"- `{campo}`: {desc}")
 
 with col_b:
-    st.markdown("**Navegación del proyecto:**")
+    st.markdown("**Secciones del proyecto**")
     st.markdown("""
     <div class="nav-card">
         <h4>📊 Contexto de la BD</h4>
-        <p>Información técnica de la base de datos: colección, total de documentos,
-        schema inferido y muestra de registros.</p>
+        <p>Resumen general de la información almacenada y una muestra de registros.</p>
     </div>
     <div class="nav-card">
         <h4>🔍 Análisis de Datos</h4>
-        <p>Gráficos interactivos con filtros por estado, género, zona, estrato e institución.
-        Responde preguntas clave sobre la población estudiantil.</p>
+        <p>Visualizaciones interactivas para explorar matrícula, retiro, zonas, grados e instituciones.</p>
+    </div>
+    <div class="nav-card">
+        <h4>🗄️ Gestión de Datos</h4>
+        <p>Opciones para cargar, actualizar y revisar el estado general de la información.</p>
     </div>
     """, unsafe_allow_html=True)
 

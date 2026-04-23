@@ -5,10 +5,10 @@ Capa de acceso a datos (DAO) para MongoDB.
 Toda interacción con la base de datos pasa por esta clase.
 """
 
-from pymongo import MongoClient, UpdateOne
-from pymongo.errors import ConnectionFailure, BulkWriteError
 import os
 from dotenv import load_dotenv
+from pymongo import ASCENDING, MongoClient, UpdateOne
+from pymongo.errors import ConnectionFailure, BulkWriteError, OperationFailure
 
 load_dotenv()
 
@@ -20,6 +20,7 @@ class MongoDAO:
         self._client = None
         self._db = None
         self._collection = None
+        self._meta = None
 
     def connect(self):
         """Establece conexión con MongoDB usando variables de entorno."""
@@ -31,16 +32,20 @@ class MongoDAO:
             raise ValueError("MONGO_URI no está definida en las variables de entorno.")
 
         self._client = MongoClient(uri, serverSelectionTimeoutMS=5000)
-        # Verifica que la conexión sea exitosa
         self._client.admin.command("ping")
         self._db = self._client[db_name]
         self._collection = self._db[collection_name]
+        self._meta = self._db["_app_metadata"]
+        self.ensure_indexes()
 
     def disconnect(self):
         """Cierra la conexión con MongoDB."""
         if self._client:
             self._client.close()
             self._client = None
+            self._db = None
+            self._collection = None
+            self._meta = None
 
     def is_connected(self) -> bool:
         """Retorna True si hay una conexión activa."""
@@ -54,55 +59,91 @@ class MongoDAO:
 
     # ─── Operaciones de escritura ────────────────────────────────────────────
 
-    def upsert_many(self, records: list[dict], key_field: str = "_id_api") -> dict:
+    def ensure_indexes(self):
+        """Crea índices útiles para la sincronización y evita duplicados."""
+        if self._collection is None:
+            return
+        try:
+            self._collection.create_index(
+                [("_id_api", ASCENDING)],
+                name="ux_id_api",
+                unique=True,
+                background=True,
+            )
+        except OperationFailure:
+            self._collection.create_index(
+                [("_id_api", ASCENDING)],
+                name="idx_id_api",
+                background=True,
+            )
+
+    def upsert_many(self, records, key_field="_id_api", batch_size=1000):
         """
         Inserta o actualiza múltiples documentos en la colección.
-
-        Args:
-            records: Lista de documentos a insertar/actualizar.
-            key_field: Campo usado como clave única para el upsert.
-
-        Returns:
-            Diccionario con conteo de insertados y modificados.
+        Trabaja por lotes para evitar cargas muy pesadas en memoria.
         """
         if not records:
             return {"inserted": 0, "modified": 0}
 
-        operations = [
-            UpdateOne(
-                {key_field: doc[key_field]},
-                {"$set": doc},
-                upsert=True
-            )
-            for doc in records
-            if key_field in doc
-        ]
+        inserted = 0
+        modified = 0
 
-        try:
-            result = self._collection.bulk_write(operations, ordered=False)
-            return {
-                "inserted": result.upserted_count,
-                "modified": result.modified_count,
-            }
-        except BulkWriteError as e:
-            print(f"[MongoDAO] Error en bulk_write: {e.details}")
-            return {"inserted": 0, "modified": 0}
+        for start in range(0, len(records), batch_size):
+            chunk = records[start:start + batch_size]
+            operations = [
+                UpdateOne(
+                    {key_field: doc[key_field]},
+                    {"$set": doc},
+                    upsert=True,
+                )
+                for doc in chunk
+                if key_field in doc
+            ]
+
+            if not operations:
+                continue
+
+            try:
+                result = self._collection.bulk_write(operations, ordered=False)
+                inserted += result.upserted_count
+                modified += result.modified_count
+            except BulkWriteError as e:
+                print(f"[MongoDAO] Error en bulk_write: {e.details}")
+
+        return {"inserted": inserted, "modified": modified}
+
+    def delete_all(self) -> int:
+        """Elimina todos los documentos de la colección."""
+        result = self._collection.delete_many({})
+        return result.deleted_count
+
+    def delete_stale_records(self, sync_token: str, sync_field: str = "_sync_token") -> int:
+        """Elimina registros que no participaron en la última sincronización."""
+        result = self._collection.delete_many({sync_field: {"$ne": sync_token}})
+        return result.deleted_count
+
+    def save_sync_metadata(self, payload: dict):
+        """Guarda metadata de la última sincronización en una colección auxiliar."""
+        if self._meta is None:
+            return
+        doc = {"_id": "etl_status", **payload}
+        self._meta.update_one({"_id": "etl_status"}, {"$set": doc}, upsert=True)
+
+    def get_sync_metadata(self) -> dict:
+        """Retorna metadata de la última sincronización."""
+        if self._meta is None:
+            return {}
+        return self._meta.find_one({"_id": "etl_status"}, {"_id": 0}) or {}
 
     # ─── Operaciones de lectura ───────────────────────────────────────────────
 
-    def get_all(self, filters: dict = None, projection: dict = None) -> list[dict]:
+    def get_all(self, filters: dict = None, projection: dict = None) -> list:
         """
         Retorna todos los documentos que cumplan los filtros dados.
-
-        Args:
-            filters: Diccionario de filtros MongoDB (ej. {"genero": "HOMBRE"}).
-            projection: Campos a incluir/excluir (ej. {"_id": 0}).
-
-        Returns:
-            Lista de documentos.
+        Excluye campos internos usados solo por la sincronización.
         """
         query = filters or {}
-        proj = projection or {"_id": 0}
+        proj = projection or {"_id": 0, "_sync_token": 0}
         cursor = self._collection.find(query, proj)
         return list(cursor)
 
@@ -112,13 +153,14 @@ class MongoDAO:
         return self._collection.count_documents(query)
 
     def get_distinct_values(self, field: str) -> list:
-        """Retorna los valores únicos de un campo."""
-        return sorted(self._collection.distinct(field))
+        """Retorna los valores únicos no vacíos de un campo."""
+        values = self._collection.distinct(field)
+        return sorted([value for value in values if value not in (None, "")])
 
     def get_collection_info(self) -> dict:
         """Retorna metadata de la colección (nombre, total docs, campos)."""
         total = self.get_count()
-        sample = self._collection.find_one({}, {"_id": 0}) or {}
+        sample = self._collection.find_one({}, {"_id": 0, "_sync_token": 0}) or {}
         return {
             "db_name": self._db.name,
             "collection_name": self._collection.name,
@@ -126,14 +168,7 @@ class MongoDAO:
             "fields": list(sample.keys()),
         }
 
-    def get_sample(self, n: int = 10) -> list[dict]:
+    def get_sample(self, n: int = 10) -> list:
         """Retorna una muestra aleatoria de N documentos."""
-        pipeline = [{"$sample": {"size": n}}, {"$project": {"_id": 0}}]
+        pipeline = [{"$sample": {"size": n}}, {"$project": {"_id": 0, "_sync_token": 0}}]
         return list(self._collection.aggregate(pipeline))
-    
-
-    def delete_all(self) -> int:
-        """Elimina todos los documentos de la colección."""
-        result = self._collection.delete_many({})
-        return result.deleted_count
-

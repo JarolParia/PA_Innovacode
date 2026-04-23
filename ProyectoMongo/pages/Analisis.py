@@ -55,17 +55,41 @@ st.markdown("""
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     }
     [data-testid="stSidebar"] { background-color: #1e293b; }
-    .chart-card {
-        background: #1e293b;
-        border: 1px solid #334155;
-        border-radius: 12px;
-        padding: 1.2rem;
-        margin-bottom: 1.2rem;
+    .page-header {
+        background: linear-gradient(135deg, rgba(15, 39, 68, 0.95), rgba(30, 58, 95, 0.9));
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 18px;
+        padding: 1.3rem 1.5rem;
+        margin-bottom: 0.6rem;
+        box-shadow: 0 18px 40px rgba(2, 8, 23, 0.2);
+    }
+    .page-kicker {
+        display: inline-block;
+        padding: 0.22rem 0.7rem;
+        border-radius: 999px;
+        background: rgba(56, 189, 248, 0.12);
+        border: 1px solid rgba(56, 189, 248, 0.24);
+        color: #bae6fd;
+        font-size: 0.78rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    .page-title {
+        color: #f8fafc;
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin: 0 0 0.3rem 0;
+    }
+    .page-sub {
+        color: #cbd5e1;
+        font-size: 0.98rem;
+        line-height: 1.5;
     }
     .chart-title {
         color: #f1f5f9;
         font-size: 1rem;
-        font-weight: 600;
+        font-weight: 700;
         margin-bottom: 0.2rem;
     }
     .chart-question {
@@ -77,13 +101,18 @@ st.markdown("""
     .kpi-box {
         background: linear-gradient(135deg, #1e3a5f, #0f2744);
         border: 1px solid #334155;
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 0.9rem 1rem;
         text-align: center;
+        box-shadow: 0 12px 28px rgba(2, 8, 23, 0.14);
     }
     .kpi-box h4 { color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;
                 letter-spacing: 0.07em; margin: 0 0 0.3rem 0; }
     .kpi-box p  { color: #38bdf8; font-size: 1.6rem; font-weight: 700; margin: 0; }
+    div[data-baseweb="select"] > div {
+        background-color: rgba(15, 23, 42, 0.75);
+        border-color: #334155;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -93,7 +122,8 @@ dao = MongoDAO()
 try:
     dao.connect()
 except Exception as e:
-    st.error(f"❌ No se pudo conectar a MongoDB: {e}")
+    st.error("❌ No fue posible conectar con la base de datos.")
+    st.caption("Verifica la configuración de conexión e inténtalo nuevamente.")
     st.stop()
 
 df_base = get_dataframe(dao)
@@ -124,10 +154,6 @@ with st.sidebar:
     inst_opts = ["Todas"] + sorted(df_base["instituci_n"].dropna().unique().tolist())
     sel_inst = st.selectbox("Institución", inst_opts)
 
-    st.markdown("---")
-    st.page_link("app.py",                           label="🏠 Inicio")
-    st.page_link("pages/Contexto_BD.py",        label="📊 Contexto de la BD")
-    st.page_link("pages/Analisis.py",           label="🔍 Análisis de Datos")
 
 # ─── Aplicar filtros ──────────────────────────────────────────────────────────
 
@@ -140,7 +166,13 @@ if sel_inst    != "Todas":  df = df[df["instituci_n"] == sel_inst]
 
 # ─── Encabezado ───────────────────────────────────────────────────────────────
 
-st.markdown("## 🔍 Análisis de Matrículas Escolares")
+st.markdown("""
+<div class="page-header">
+    <div class="page-kicker">Exploración interactiva</div>
+    <div class="page-title">🔍 Análisis de Matrículas Escolares</div>
+    <div class="page-sub">Explora el comportamiento de la matrícula con filtros dinámicos y visualizaciones enfocadas en los indicadores más relevantes.</div>
+</div>
+""", unsafe_allow_html=True)
 st.caption(f"Mostrando **{len(df):,}** registros con los filtros seleccionados.")
 st.divider()
 
